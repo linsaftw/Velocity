@@ -130,7 +130,6 @@ public class HandshakeSessionHandler implements MinecraftSessionHandler {
       ic.disconnectQuietly(Component.translatable("velocity.error.logging-in-too-fast"));
       return;
     }
-    // TODO: First time reconnect check
     if (!server.getFirstAttemptLimiter().attempt(address)) {
       ic.disconnectQuietly(Component.translatable("velocity.error.first-attempt"));
       return;
