@@ -59,6 +59,7 @@ import com.velocitypowered.proxy.util.EncryptionUtils;
 import com.velocitypowered.proxy.util.FileSystemUtils;
 import com.velocitypowered.proxy.util.VelocityChannelRegistrar;
 import com.velocitypowered.proxy.util.bossbar.AdventureBossBarManager;
+import com.velocitypowered.proxy.util.ratelimit.FirstAttemptLimiter;
 import com.velocitypowered.proxy.util.ratelimit.Ratelimiter;
 import com.velocitypowered.proxy.util.ratelimit.Ratelimiters;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -141,6 +142,7 @@ public class VelocityServer implements ProxyServer, ForwardingAudience {
   private final Map<String, ConnectedPlayer> connectionsByName = new ConcurrentHashMap<>();
   private final VelocityConsole console;
   private @MonotonicNonNull Ratelimiter ipAttemptLimiter;
+  private @MonotonicNonNull FirstAttemptLimiter firstAttemptLimiter;
   private final VelocityEventManager eventManager;
   private final VelocityScheduler scheduler;
   private final VelocityChannelRegistrar channelRegistrar = new VelocityChannelRegistrar();
@@ -219,6 +221,7 @@ public class VelocityServer implements ProxyServer, ForwardingAudience {
     }
 
     ipAttemptLimiter = Ratelimiters.createWithMilliseconds(configuration.getLoginRatelimit());
+    firstAttemptLimiter = new FirstAttemptLimiter();
     loadPlugins();
 
     // Go ahead and fire the proxy initialization event. We block since plugins should have a chance
@@ -438,6 +441,7 @@ public class VelocityServer implements ProxyServer, ForwardingAudience {
 
     commandManager.setAnnounceProxyCommands(newConfiguration.isAnnounceProxyCommands());
     ipAttemptLimiter = Ratelimiters.createWithMilliseconds(newConfiguration.getLoginRatelimit());
+    firstAttemptLimiter = new FirstAttemptLimiter();
     this.configuration = newConfiguration;
     eventManager.fireAndForget(new ProxyReloadEvent());
     return true;
@@ -549,6 +553,10 @@ public class VelocityServer implements ProxyServer, ForwardingAudience {
 
   public Ratelimiter getIpAttemptLimiter() {
     return ipAttemptLimiter;
+  }
+
+  public FirstAttemptLimiter getFirstAttemptLimiter() {
+    return firstAttemptLimiter;
   }
 
   /**
